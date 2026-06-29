@@ -1,5 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { config, checkConfig } from './config';
 import { getAuthUrl, getTokensFromCode, fetchEmails, getGmailClient, verifyEmailProfile, getOAuthClient } from './gmail';
 import { google } from 'googleapis';
@@ -9,7 +11,18 @@ import { upsertPurchase, supabase } from './db';
 const app = express();
 const PORT = config.PORT;
 
+// Rate limiting middleware: max 100 requests per 15 minutes per IP
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 100,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'Too many requests from this IP, please try again later.' },
+});
+
 // Middleware
+app.use(helmet());
+app.use(limiter);
 app.use(cors());
 app.use(express.json());
 
