@@ -101,7 +101,7 @@ app.get('/auth/callback', async (req: Request, res: Response) => {
  * Query parameters:
  *  - limit: number of messages to fetch (default: 10)
  */
-app.post('/sync', async (req: Request, res: Response) => {
+app.all('/sync', async (req: Request, res: Response) => {
   const limit = parseInt(req.query.limit as string || '10', 10);
   
   try {
@@ -140,7 +140,7 @@ app.post('/sync', async (req: Request, res: Response) => {
 /**
  * Register a watch with Gmail to start sending push notifications to our Pub/Sub topic.
  */
-app.post('/watch', async (_req: Request, res: Response) => {
+app.all('/watch', async (_req: Request, res: Response) => {
   try {
     await verifyEmailProfile();
     const gmail = getGmailClient();
