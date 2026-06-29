@@ -117,3 +117,96 @@ To trigger your deployed Render endpoint in real time whenever a purchase email 
 5. Setup Daily Watch Renewal:
    * Gmail watches expire after 7 days. Configure a daily cron job (e.g. on cron-job.org) to send a daily POST request to:
      https://purchase-tracker-mon2.onrender.com/watch
+
+---
+
+## API Usage Examples
+
+### 1. Sync Purchases
+Sync recent emails with the target label from Gmail into Supabase.
+
+* **URL**: `https://purchase-tracker-mon2.onrender.com/sync`
+* **Method**: `GET` or `POST`
+* **Query Parameters**:
+  * `limit` (optional): Maximum number of emails to sync. Default is 10.
+* **Example Request**:
+  `GET https://purchase-tracker-mon2.onrender.com/sync?limit=2`
+* **Example Response**:
+  ```json
+  {
+    "message": "Sync completed",
+    "totalFound": 2,
+    "processed": [
+      {
+        "emailId": "19f148d66c4ec481",
+        "status": "synced",
+        "data": [
+          {
+            "id": "41b0ed8f-7cea-46dd-b83f-362a54e23969",
+            "merchant": "Amazon",
+            "amount": 97.41,
+            "currency": "USD",
+            "purchase_date": "2026-06-29T00:00:00+00:00",
+            "gmail_message_id": "19f148d66c4ec481"
+          }
+        ]
+      }
+    ]
+  }
+  ```
+
+### 2. Get Monthly Totals
+Retrieve aggregated monthly running totals.
+
+* **URL**: `https://purchase-tracker-mon2.onrender.com/monthly`
+* **Method**: `GET` or `POST`
+* **Query Parameters**:
+  * `month` (optional): Retrieve a specific month in YYYY-MM format (e.g., `2026-06`).
+* **Example Request (All months - returns up to 5)**:
+  `GET https://purchase-tracker-mon2.onrender.com/monthly`
+* **Example Response (All months)**:
+  ```json
+  {
+    "data": [
+      {
+        "month": "2026-06",
+        "total_amount": 219.00,
+        "updated_at": "2026-06-29T19:51:30.790+00:00"
+      }
+    ],
+    "hasMore": false
+  }
+  ```
+* **Example Request (Specific month)**:
+  `GET https://purchase-tracker-mon2.onrender.com/monthly?month=2026-06`
+* **Example Response (Specific month)**:
+  ```json
+  {
+    "data": [
+      {
+        "month": "2026-06",
+        "total_amount": 219.00,
+        "updated_at": "2026-06-29T19:51:30.790+00:00"
+      }
+    ],
+    "hasMore": false
+  }
+  ```
+
+### 3. Register Gmail Watch
+Registers or renews the Gmail API watch subscription. Must be called every 7 days (recommended daily via cron-job.org).
+
+* **URL**: `https://purchase-tracker-mon2.onrender.com/watch`
+* **Method**: `GET` or `POST`
+* **Example Request**:
+  `GET https://purchase-tracker-mon2.onrender.com/watch`
+* **Example Response**:
+  ```json
+  {
+    "message": "Watch registered successfully",
+    "data": {
+      "historyId": "10633100",
+      "expiration": "1783367167544"
+    }
+  }
+  ```
