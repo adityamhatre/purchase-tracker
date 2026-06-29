@@ -8,12 +8,12 @@ CREATE TABLE IF NOT EXISTS public.monthly_totals (
 -- Enable RLS
 ALTER TABLE public.monthly_totals ENABLE ROW LEVEL SECURITY;
 
--- Create Policy: Authenticated users can read all records
-CREATE POLICY "Allow authenticated users read access to monthly totals" 
+-- Create Policy: Only the restricted owner can read records
+CREATE POLICY "Allow only restricted owner read access to monthly totals" 
 ON public.monthly_totals 
 FOR SELECT 
 TO authenticated 
-USING (true);
+USING (auth.jwt() ->> 'email' = 'aditya.r.mhatre@gmail.com');
 
 -- Create Policy: Deny all public anon access
 CREATE POLICY "Deny anonymous access to monthly totals" 

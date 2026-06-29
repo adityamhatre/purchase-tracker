@@ -20,14 +20,12 @@ CREATE INDEX IF NOT EXISTS idx_purchases_gmail_message_id ON public.purchases (g
 -- Enable RLS
 ALTER TABLE public.purchases ENABLE ROW LEVEL SECURITY;
 
--- Create Policy: Authenticated users can read all records
--- (Since it is a single-user project, any user authenticated in your Supabase project can view the purchases.
--- If you expand this to multi-user later, you would add a user_id UUID column and check auth.uid() = user_id)
-CREATE POLICY "Allow authenticated users read access" 
+-- Create Policy: Only the restricted owner can read records
+CREATE POLICY "Allow only restricted owner read access" 
 ON public.purchases 
 FOR SELECT 
 TO authenticated 
-USING (true);
+USING (auth.jwt() ->> 'email' = 'aditya.r.mhatre@gmail.com');
 
 -- Create Policy: Deny all public anon reads (by default, but explicitly stated here)
 -- (Users must log in to the client app to retrieve financial information)
