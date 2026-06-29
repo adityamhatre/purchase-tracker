@@ -252,11 +252,20 @@ app.all('/watch', async (_req: Request, res: Response) => {
 app.post('/webhook/pubsub', async (req: Request, res: Response) => {
   console.log('[Pub/Sub Webhook]: Received push notification.');
   
-  // 1. Optional security token check
+  // 1. Optional security token check (Constant-time comparison to prevent timing attacks)
   const webhookSecret = process.env.PUBSUB_SECRET;
-  if (webhookSecret && req.query.secret !== webhookSecret) {
-    res.status(401).json({ error: 'Unauthorized webhook request' });
-    return;
+  if (webhookSecret) {
+    const providedSecret = req.query.secret as string;
+    if (!providedSecret) {
+      res.status(401).json({ error: 'Unauthorized webhook request: Missing secret token.' });
+      return;
+    }
+    const providedHash = crypto.createHash('sha256').update(providedSecret).digest();
+    const expectedHash = crypto.createHash('sha256').update(webhookSecret).digest();
+    if (!crypto.timingSafeEqual(providedHash, expectedHash)) {
+      res.status(401).json({ error: 'Unauthorized webhook request: Invalid secret token.' });
+      return;
+    }
   }
 
   try {
