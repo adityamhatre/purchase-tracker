@@ -229,18 +229,47 @@ app.post('/webhook/pubsub', async (req: Request, res: Response) => {
 /**
  * Retrieve monthly running totals from Supabase
  */
-app.all('/monthly', async (_req: Request, res: Response) => {
+app.all('/monthly', async (req: Request, res: Response) => {
   try {
+    const targetMonth = req.query.month as string; // Format: YYYY-MM
+    
+    if (targetMonth) {
+      // Validate targetMonth format YYYY-MM
+      if (!/^\d{4}-\d{2}$/.test(targetMonth)) {
+        res.status(400).json({ error: 'Invalid month format. Expected YYYY-MM (e.g., 2026-06).' });
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from('monthly_totals')
+        .select('*')
+        .eq('month', targetMonth);
+        
+      if (error) throw error;
+      
+      res.json({
+        data: data || [],
+        hasMore: false
+      });
+      return;
+    }
+
+    // Default: Fetch last 5 records, query 6 to check if there are more
     const { data, error } = await supabase
       .from('monthly_totals')
       .select('*')
-      .order('month', { ascending: false });
+      .order('month', { ascending: false })
+      .limit(6);
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
-    res.json(data);
+    const hasMore = data && data.length > 5;
+    const finalData = hasMore ? data.slice(0, 5) : (data || []);
+
+    res.json({
+      data: finalData,
+      hasMore
+    });
   } catch (error: any) {
     res.status(500).json({ error: 'Failed to retrieve monthly totals', details: error.message });
   }

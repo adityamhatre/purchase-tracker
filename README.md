@@ -91,7 +91,7 @@ Render environment variables:
 
 Available Endpoints:
 * GET or POST /sync - Sync recent emails from Gmail (optional query parameter: ?limit=10)
-* GET or POST /monthly - Retrieve running monthly totals from Supabase
+* GET or POST /monthly - Retrieve running monthly totals from Supabase (optional query parameter: ?month=YYYY-MM to get a specific month. Defaults to returning the last 5 months in a {data: [...], hasMore: boolean} format)
 * GET or POST /watch - Register the push webhook watch subscription with Gmail API
 
 ---
