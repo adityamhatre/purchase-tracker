@@ -13,6 +13,34 @@ const PORT = config.PORT;
 app.use(cors());
 app.use(express.json());
 
+// API Key Verification Middleware
+const verifyApiKey = (req: Request, res: Response, next: () => void) => {
+  const path = req.path;
+  // Exclude health, webhook (which has its own secret), and OAuth callback from general API key check
+  if (path === '/health' || path === '/webhook/pubsub' || path === '/auth/callback') {
+    next();
+    return;
+  }
+
+  const providedKey = (req.headers['x-api-key'] || req.query.api_key) as string;
+  const expectedKey = process.env.API_KEY;
+
+  if (!expectedKey) {
+    console.error('[Security Warning]: API_KEY environment variable is not configured! Blocking request.');
+    res.status(500).json({ error: 'Internal Server Error: API key is not configured.' });
+    return;
+  }
+
+  if (providedKey !== expectedKey) {
+    res.status(401).json({ error: 'Unauthorized: Invalid or missing API key.' });
+    return;
+  }
+
+  next();
+};
+
+app.use(verifyApiKey);
+
 // Log config status on startup
 checkConfig();
 

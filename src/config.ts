@@ -13,6 +13,7 @@ export const config = {
   SUPABASE_URL: process.env.SUPABASE_URL || '',
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
   GOOGLE_PUBSUB_TOPIC: process.env.GOOGLE_PUBSUB_TOPIC || '',
+  API_KEY: process.env.API_KEY || '',
 };
 
 // Simple configuration checker
@@ -23,6 +24,7 @@ export function checkConfig() {
     'GOOGLE_CLIENT_SECRET',
     'SUPABASE_URL',
     'SUPABASE_SERVICE_ROLE_KEY',
+    'API_KEY',
   ];
 
   criticalKeys.forEach((key) => {

@@ -8,15 +8,18 @@ For security, this application is restricted to process emails for aditya.r.mhat
 
 ## API Usage Examples
 
+To secure your data, all API endpoints (except health checks, incoming webhooks, and OAuth callbacks) require you to authenticate. You must pass your `API_KEY` either as a request header `x-api-key` or as a query parameter `?api_key=YOUR_API_KEY`.
+
 ### 1. Sync Purchases
 Sync recent emails with the target label from Gmail into Supabase.
 
 * **URL**: `https://purchase-tracker-mon2.onrender.com/sync`
 * **Method**: `GET` or `POST`
 * **Query Parameters**:
+  * `api_key` (required): Your secure API key.
   * `limit` (optional): Maximum number of emails to sync. Default is 10.
 * **Example Request**:
-  `GET https://purchase-tracker-mon2.onrender.com/sync?limit=2`
+  `GET https://purchase-tracker-mon2.onrender.com/sync?limit=2&api_key=your-api-key`
 * **Example Response**:
   ```json
   {
@@ -47,9 +50,10 @@ Retrieve aggregated monthly running totals.
 * **URL**: `https://purchase-tracker-mon2.onrender.com/monthly`
 * **Method**: `GET` or `POST`
 * **Query Parameters**:
+  * `api_key` (required): Your secure API key.
   * `month` (optional): Retrieve a specific month in YYYY-MM format (e.g., `2026-06`).
 * **Example Request (All months - returns up to 5)**:
-  `GET https://purchase-tracker-mon2.onrender.com/monthly`
+  `GET https://purchase-tracker-mon2.onrender.com/monthly?api_key=your-api-key`
 * **Example Response (All months)**:
   ```json
   {
@@ -64,7 +68,7 @@ Retrieve aggregated monthly running totals.
   }
   ```
 * **Example Request (Specific month)**:
-  `GET https://purchase-tracker-mon2.onrender.com/monthly?month=2026-06`
+  `GET https://purchase-tracker-mon2.onrender.com/monthly?month=2026-06&api_key=your-api-key`
 * **Example Response (Specific month)**:
   ```json
   {
@@ -84,8 +88,10 @@ Registers or renews the Gmail API watch subscription. Must be called every 7 day
 
 * **URL**: `https://purchase-tracker-mon2.onrender.com/watch`
 * **Method**: `GET` or `POST`
+* **Query Parameters**:
+  * `api_key` (required): Your secure API key.
 * **Example Request**:
-  `GET https://purchase-tracker-mon2.onrender.com/watch`
+  `GET https://purchase-tracker-mon2.onrender.com/watch?api_key=your-api-key`
 * **Example Response**:
   ```json
   {
@@ -148,18 +154,18 @@ To connect to Gmail and receive Pub/Sub messages, you must set up a Google Cloud
    ```bash
    cp .env.example .env
    ```
-3. Fill in your GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and your Supabase credentials in the .env file.
+3. Fill in your GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, API_KEY, and your Supabase credentials in the .env file.
 4. Start the development server:
    ```bash
    npm run dev
    ```
-5. Open your browser and navigate to http://localhost:8080/auth/google.
+5. Open your browser and navigate to http://localhost:8080/auth/google?api_key=YOUR_API_KEY.
 6. Sign in with your Gmail account and grant the requested permissions.
 7. Upon redirect, you will see a page displaying your GOOGLE_REFRESH_TOKEN.
 8. Copy this token and save it in your .env file as GOOGLE_REFRESH_TOKEN.
 9. Restart your server. You can now trigger a manual sync of recent emails with:
    ```bash
-   curl -X POST "http://localhost:8080/sync?limit=5"
+   curl -X POST "http://localhost:8080/sync?limit=5&api_key=YOUR_API_KEY"
    ```
 
 ---
@@ -181,6 +187,7 @@ Render environment variables:
 * SUPABASE_SERVICE_ROLE_KEY = [Your Service Role Role Key]
 * GOOGLE_PUBSUB_TOPIC = projects/aditya-89b0e/topics/gmail-notifications
 * PUBSUB_SECRET = [Your Webhook Secret]
+* API_KEY = [Your Secure API Key]
 
 Available Endpoints:
 * GET or POST /sync - Sync recent emails from Gmail (optional query parameter: ?limit=10)
@@ -205,8 +212,8 @@ To trigger your deployed Render endpoint in real time whenever a purchase email 
 4. Register the Watch:
    * Call the watch registration endpoint to link Gmail notifications to the Pub/Sub topic:
      ```bash
-     curl -X POST "https://purchase-tracker-mon2.onrender.com/watch"
+     curl -X POST "https://purchase-tracker-mon2.onrender.com/watch?api_key=YOUR_API_KEY"
      ```
 5. Setup Daily Watch Renewal:
    * Gmail watches expire after 7 days. Configure a daily cron job (e.g. on cron-job.org) to send a daily POST request to:
-     https://purchase-tracker-mon2.onrender.com/watch
+     https://purchase-tracker-mon2.onrender.com/watch?api_key=YOUR_API_KEY
