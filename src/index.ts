@@ -1,7 +1,8 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { config, checkConfig } from './config';
-import { getAuthUrl, getTokensFromCode, fetchEmails, getGmailClient } from './gmail';
+import { getAuthUrl, getTokensFromCode, fetchEmails, getGmailClient, verifyEmailProfile, getOAuthClient } from './gmail';
+import { google } from 'googleapis';
 import { parseEmailToPurchase } from './parser';
 import { upsertPurchase } from './db';
 
@@ -47,6 +48,18 @@ app.get('/auth/callback', async (req: Request, res: Response) => {
 
   try {
     const tokens = await getTokensFromCode(code);
+    
+    // Verify email matches the restricted owner
+    const oauth2Client = getOAuthClient();
+    oauth2Client.setCredentials(tokens);
+    const gmailClientTemp = google.gmail({ version: 'v1', auth: oauth2Client });
+    const profile = await gmailClientTemp.users.getProfile({ userId: 'me' });
+    const email = profile.data.emailAddress;
+    
+    if (!email || email.toLowerCase() !== 'aditya.r.mhatre@gmail.com') {
+      res.status(403).send('Forbidden: This application is restricted to aditya.r.mhatre@gmail.com only.');
+      return;
+    }
     
     // Render a friendly HTML page showing the refresh token
     res.send(`
@@ -129,6 +142,7 @@ app.post('/sync', async (req: Request, res: Response) => {
  */
 app.post('/watch', async (_req: Request, res: Response) => {
   try {
+    await verifyEmailProfile();
     const gmail = getGmailClient();
     console.log(`[Gmail]: Registering watch for topic: ${config.GOOGLE_PUBSUB_TOPIC}`);
     const response = await gmail.users.watch({

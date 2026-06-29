@@ -93,9 +93,22 @@ function extractBody(payload: any): { text: string; html: string } {
 }
 
 /**
+ * Verifies that the authenticated Gmail account matches the restricted personal email.
+ */
+export async function verifyEmailProfile(): Promise<void> {
+  const gmail = getGmailClient();
+  const profile = await gmail.users.getProfile({ userId: 'me' });
+  const email = profile.data.emailAddress;
+  if (!email || email.toLowerCase() !== 'aditya.r.mhatre@gmail.com') {
+    throw new Error(`Unauthorized: Authenticated Gmail account (${email}) does not match the restricted owner.`);
+  }
+}
+
+/**
  * Fetches emails matching a query/label.
  */
 export async function fetchEmails(query: string, maxResults = 10): Promise<EmailData[]> {
+  await verifyEmailProfile();
   const gmail = getGmailClient();
   console.log(`[Gmail]: Fetching emails with query: "${query}"`);
   
