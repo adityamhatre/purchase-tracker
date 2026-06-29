@@ -12,10 +12,7 @@ export function getOAuthClient() {
   );
 }
 
-/**
- * Generates the URL to redirect the user to for authentication.
- */
-export function getAuthUrl() {
+export function getAuthUrl(state?: string) {
   const oauth2Client = getOAuthClient();
   return oauth2Client.generateAuthUrl({
     access_type: 'offline', // Critical to get the refresh token
@@ -24,6 +21,7 @@ export function getAuthUrl() {
       'https://www.googleapis.com/auth/gmail.readonly',
       'https://www.googleapis.com/auth/userinfo.email',
     ],
+    state,
   });
 }
 

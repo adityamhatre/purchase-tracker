@@ -77,7 +77,12 @@ app.get('/health', (_req: Request, res: Response) => {
  */
 app.get('/auth/google', (_req: Request, res: Response) => {
   try {
-    const url = getAuthUrl();
+    // Generate a stateless cryptographically signed state (prevent CSRF)
+    const timestamp = Date.now().toString();
+    const hmac = crypto.createHmac('sha256', process.env.API_KEY || 'default-secret-key').update(timestamp).digest('hex');
+    const state = `${timestamp}.${hmac}`;
+
+    const url = getAuthUrl(state);
     res.redirect(url);
   } catch (error: any) {
     res.status(500).json({ error: 'Failed to generate Auth URL', details: error.message });
@@ -90,12 +95,42 @@ app.get('/auth/google', (_req: Request, res: Response) => {
  */
 app.get('/auth/callback', async (req: Request, res: Response) => {
   const code = req.query.code as string;
+  const state = req.query.state as string;
+
   if (!code) {
     res.status(400).send('Missing code parameter in callback request.');
     return;
   }
 
+  // Validate the stateless CSRF state parameter
+  if (!state) {
+    res.status(400).send('Unauthorized callback: Missing CSRF state parameter.');
+    return;
+  }
+
   try {
+    const parts = state.split('.');
+    if (parts.length !== 2) {
+      res.status(400).send('Unauthorized callback: Invalid CSRF state parameter format.');
+      return;
+    }
+
+    const [timestamp, receivedHmac] = parts;
+    const expectedHmac = crypto.createHmac('sha256', process.env.API_KEY || 'default-secret-key').update(timestamp).digest('hex');
+
+    // Verify HMAC matches (to confirm we generated it)
+    if (receivedHmac !== expectedHmac) {
+      res.status(400).send('Unauthorized callback: CSRF state parameter signature mismatch.');
+      return;
+    }
+
+    // Verify timestamp is not older than 10 minutes (replay protection)
+    const stateAge = Date.now() - parseInt(timestamp, 10);
+    if (stateAge < 0 || stateAge > 10 * 60 * 1000) {
+      res.status(400).send('Unauthorized callback: CSRF state parameter has expired.');
+      return;
+    }
+
     const tokens = await getTokensFromCode(code);
     
     // Verify email matches the restricted owner
