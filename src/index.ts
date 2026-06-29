@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-
+import crypto from 'crypto';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { config, checkConfig } from './config';
@@ -25,7 +25,7 @@ app.use(helmet());
 app.use(limiter);
 app.use(express.json());
 
-// API Key Verification Middleware
+// API Key Verification Middleware (Constant-time comparison to prevent timing attacks)
 const verifyApiKey = (req: Request, res: Response, next: () => void) => {
   const path = req.path;
   // Exclude health, webhook (which has its own secret), and OAuth callback from general API key check
@@ -43,7 +43,16 @@ const verifyApiKey = (req: Request, res: Response, next: () => void) => {
     return;
   }
 
-  if (providedKey !== expectedKey) {
+  if (!providedKey) {
+    res.status(401).json({ error: 'Unauthorized: Invalid or missing API key.' });
+    return;
+  }
+
+  // Hash both keys to ensure equal length before running timingSafeEqual
+  const providedHash = crypto.createHash('sha256').update(providedKey).digest();
+  const expectedHash = crypto.createHash('sha256').update(expectedKey).digest();
+
+  if (!crypto.timingSafeEqual(providedHash, expectedHash)) {
     res.status(401).json({ error: 'Unauthorized: Invalid or missing API key.' });
     return;
   }
