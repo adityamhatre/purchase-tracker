@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import cors from 'cors';
+
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { config, checkConfig } from './config';
@@ -23,7 +23,6 @@ const limiter = rateLimit({
 // Middleware
 app.use(helmet());
 app.use(limiter);
-app.use(cors());
 app.use(express.json());
 
 // API Key Verification Middleware
