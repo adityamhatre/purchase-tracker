@@ -10,7 +10,6 @@ export const config = {
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
   GOOGLE_REFRESH_TOKEN: process.env.GOOGLE_REFRESH_TOKEN || '',
   GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI || 'http://localhost:8080/auth/callback',
-  GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
   SUPABASE_URL: process.env.SUPABASE_URL || '',
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
   GOOGLE_PUBSUB_TOPIC: process.env.GOOGLE_PUBSUB_TOPIC || '',
@@ -22,7 +21,6 @@ export function checkConfig() {
   const criticalKeys = [
     'GOOGLE_CLIENT_ID',
     'GOOGLE_CLIENT_SECRET',
-    'GEMINI_API_KEY',
     'SUPABASE_URL',
     'SUPABASE_SERVICE_ROLE_KEY',
   ];
