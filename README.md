@@ -10,6 +10,7 @@ For security, this application is restricted to process emails for aditya.r.mhat
 * Gmail Integration: Automatically pulls purchase confirmation/invoice emails using the expenses-from-amex Gmail label.
 * Rules-Based Parser: Deterministically extracts merchant name, transaction amount, and purchase date from Amex notification emails. No external AI APIs or keys needed.
 * Running Monthly Totals: Automatically maintains and updates running monthly totals in a dedicated database table via PostgreSQL triggers.
+* Monthly Totals API: Exposes a /monthly endpoint to retrieve running monthly totals directly as a JSON response.
 * Real-time Sync: Receives push notifications from Google Pub/Sub when a new email arrives.
 * Supabase Database: Stores purchases securely. Client apps can fetch data directly from Supabase.
 
@@ -87,6 +88,11 @@ Render environment variables:
 * SUPABASE_SERVICE_ROLE_KEY = [Your Service Role Role Key]
 * GOOGLE_PUBSUB_TOPIC = projects/aditya-89b0e/topics/gmail-notifications
 * PUBSUB_SECRET = [Your Webhook Secret]
+
+Available Endpoints:
+* GET or POST /sync - Sync recent emails from Gmail (optional query parameter: ?limit=10)
+* GET or POST /monthly - Retrieve running monthly totals from Supabase
+* GET or POST /watch - Register the push webhook watch subscription with Gmail API
 
 ---
 

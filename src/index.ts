@@ -4,7 +4,7 @@ import { config, checkConfig } from './config';
 import { getAuthUrl, getTokensFromCode, fetchEmails, getGmailClient, verifyEmailProfile, getOAuthClient } from './gmail';
 import { google } from 'googleapis';
 import { parseEmailToPurchase } from './parser';
-import { upsertPurchase } from './db';
+import { upsertPurchase, supabase } from './db';
 
 const app = express();
 const PORT = config.PORT;
@@ -223,6 +223,26 @@ app.post('/webhook/pubsub', async (req: Request, res: Response) => {
     // Returning a 500 will make Pub/Sub retry the delivery, 
     // so we only return it on severe system/database failures.
     res.status(500).json({ error: 'Internal server error processing push notification', details: error.message });
+  }
+});
+
+/**
+ * Retrieve monthly running totals from Supabase
+ */
+app.all('/monthly', async (_req: Request, res: Response) => {
+  try {
+    const { data, error } = await supabase
+      .from('monthly_totals')
+      .select('*')
+      .order('month', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to retrieve monthly totals', details: error.message });
   }
 });
 
