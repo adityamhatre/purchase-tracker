@@ -322,8 +322,9 @@ app.post('/webhook/pubsub', async (req: Request, res: Response) => {
 /**
  * Retrieve monthly running totals from Supabase
  */
-app.all('/monthly', async (req: Request, res: Response) => {
-  try {
+app.all("/monthly", async (req: Request, res: Response) => {
+    res.setHeader("Cache-Control", "public, max-age=300");
+    try {
     const targetMonth = req.query.month as string; // Format: YYYY-MM
     
     if (targetMonth) {
