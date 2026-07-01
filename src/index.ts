@@ -334,15 +334,19 @@ app.all('/monthly', async (req: Request, res: Response) => {
       }
       
       const { data, error } = await supabase
-        .from('monthly_totals')
-        .select('*')
-        .eq('month', targetMonth);
-        
+          .from("monthly_totals")
+          .select("*")
+          .eq("month", targetMonth);
+          
       if (error) throw error;
       
+      const responseData = (data && data.length > 0)
+          ? data
+          : [{ month: targetMonth, total_amount: 0, updated_at: new Date().toISOString() }];
+      
       res.json({
-        data: data || [],
-        hasMore: false
+          data: responseData,
+          hasMore: false
       });
       return;
     }
